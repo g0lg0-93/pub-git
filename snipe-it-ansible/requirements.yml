@@ -1,0 +1,10 @@
+############################################
+# This will download modules used through  #
+# the deployment.                          #
+###########################################
+
+- name: mysql_db
+  src: community.mysql
+
+- name: general
+  src: community.general

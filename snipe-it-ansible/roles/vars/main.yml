@@ -1,0 +1,6 @@
+# Variables used in the configurations #
+
+SNIPEIT_URL: http://snipeit.example.com
+DB_DATABASE: changeme
+DB_USERNAME: changeme
+DB_PASSWORD: makemeagoodone

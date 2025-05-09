@@ -1,0 +1,51 @@
+---
+# We're installing the LEMP stack here #
+
+- name: Install nginx, php and other packages required
+  apt: name={{ item }} update_cache=yes state=latest
+  with_items:
+    - nginx
+    - mariadb-server
+    - php-bcmath
+    - php-common
+    - php-ctype
+    - php-curl
+    - php-fileinfo
+    - php-fpm
+    - php-gd
+    - php-iconv
+    - php-intl
+    - php-intl
+    - php-mbstring
+    - php-mysql
+    - php-soap
+    - php-xml
+    - php-xsl
+    - php-zip
+    - git
+
+# We're installing Composer, sig check included
+
+- name: Check for Composer
+  stat:
+    path: /usr/local/bin/composer
+  register: composer_exits # This will be checked for its existence.
+
+- name: Install latest Composer
+  shell: |
+    EXPECTED_CHECKSUM="$(php -r 'copy("https://composer.github.io/installer.sig", "php://stdout");')"
+    php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+    ACTUAL_CHECKSUM="$(php -r "echo hash_file('sha384', 'composer-setup.php');")"
+
+    if [ "$EXPECTED_CHECKSUM" != "$ACTUAL_CHECKSUM" ]
+    then
+        >&2 echo 'ERROR: Invalid installer checksum'
+        rm composer-setup.php
+        exit 1
+    fi
+
+    php composer-setup.php --quiet
+    RESULT=$?
+    rm composer-setup.php
+    exit $RESULT
+  when: not composer_exits.stat.exists # Checking for Composer paths existence

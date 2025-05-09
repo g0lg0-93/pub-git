@@ -1,0 +1,58 @@
+---
+# We're removing the anonymous user account, creating the Database (DB) for #
+# Snipe-IT, creating the DB User & applying permissions                     #
+
+- name: Make sure MySQL is running
+  systemd:
+    name: MySQL
+    state: started
+    enabled: yes
+
+- name: Removes anonymous user account for localhost
+  community.mysql.mysql_user:
+    name: ''
+    host: localhost
+    state: absent
+    login_unix_socket: /run/mysqld/mysqld.sock
+
+- name: Creating the initial database
+  community.mysql.mysql_db:
+    name:
+     - "{{ DB_DATABASE }}"
+    state: present
+
+- name: Creating the initial database user
+  community.mysql.mysql_user:
+    name: "{{ DB_USERNAME }}"
+    password: "{{ DB_PASSWORD }}"
+    priv: 
+      'snipeit.*': 'ALL,GRANT' # CHANGE 'snipeit' TO VARIABLE
+
+- name: Cloning Snipe-IT
+  ansible.builtin.git:
+    clone: 'https://github.com/snipe/snipe-it'
+    dest: /var/www/html
+
+- name: Copying .env to nginx - Snipe-IT
+  ansible.builtin.copy:
+    src: /.env
+    dest: /var/www/html/snipe-it
+    owner: www-data
+    group: www-data
+    mode: '0755'
+
+- name: Using Composer to update
+  community.general.composer:
+    command: update
+    no_plugins: true
+    no_scripts: true
+    working_dir: /var/www/html/snipe-it
+
+- name: Using Composer to install
+  community.general.composer:
+    command: install
+    no_plugins: true
+    no_scripts: true
+    prefer_source: true
+    no_dev: true
+    working_dir: /var/www/html/snipe-it

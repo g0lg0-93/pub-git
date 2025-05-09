@@ -1,0 +1,4 @@
+- hosts: snipeit
+  become: yes
+  roles:
+    - snipe-it
